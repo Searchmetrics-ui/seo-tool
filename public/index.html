@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoPulse — AEO & Generative Engine Optimization Tool</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            charcoal: {
+              950: '#09090b',
+              900: '#18181b',
+              800: '#27272a',
+              700: '#3f3f46',
+              600: '#52525b',
+              500: '#71717a',
+              400: '#a1a1aa',
+              300: '#d4d4d8',
+              200: '#e4e4e7',
+              100: '#f4f4f5',
+              50: '#fafafa'
+            },
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-white: #ffffff;
+      --charcoal-main: #09090b;
+      --charcoal-muted: #52525b;
+      --orange-accent: #f97316;
+    }
+    body {
+      background-color: var(--bg-white);
+      color: var(--charcoal-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .tab-active {
+      border-color: #f97316 !important;
+      color: #ea580c !important;
+      background-color: #fff7ed !important;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen bg-white text-charcoal-900 p-4 md:p-8 antialiased selection:bg-orange-500 selection:text-white">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Status Banner -->
+    <div class="bg-orange-50/70 border border-orange-200 rounded-xl px-4 py-3 flex flex-col md:flex-row items-center justify-between text-xs text-orange-950 gap-3 shadow-sm">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-600"></span>
+        </span>
+        <span class="font-bold text-orange-950">GeoPulse AEO & GEO Engine Active</span>
+        <span class="text-orange-300">|</span>
+        <span class="text-charcoal-700">Audit content for ChatGPT Search, Perplexity, and Google AI Overviews.</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-charcoal-600 font-medium">Engine:</span>
+        <span class="bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full border border-orange-300 font-bold text-[11px]">Princeton GEO Benchmarks</span>
+      </div>
+    </div>
+
+    <!-- Top Navigation Header -->
+    <header class="flex flex-col md:flex-row items-start md:items-center justify-between pb-5 border-b border-charcoal-200 gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 flex items-center justify-center shadow-md shadow-orange-500/20 text-white font-black text-xl">
+          ⚡
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-2xl font-black tracking-tight text-charcoal-950">GeoPulse</h1>
+            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-300 uppercase tracking-wider">AEO / GEO Engine</span>
+          </div>
+          <p class="text-xs text-charcoal-600">Answer Engine Optimization (AEO) & Generative Search Visibility Suite</p>
+        </div>
+      </div>
+
+      <!-- Quick Preset & Mode Selector -->
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <div class="flex items-center gap-1.5 bg-charcoal-100 p-1 rounded-xl border border-charcoal-200 text-xs">
+          <span class="px-2 text-charcoal-600 font-semibold">Load Sample:</span>
+          <button id="btn-preset-good" onclick="loadSamplePreset('good')" class="px-3 py-1.5 rounded-lg font-bold bg-orange-600 hover:bg-orange-500 text-white transition shadow-sm">
+            Optimized Guide (88/100)
+          </button>
+          <button id="btn-preset-poor" onclick="loadSamplePreset('poor')" class="px-3 py-1.5 rounded-lg font-bold text-charcoal-600 hover:text-charcoal-950 transition">
+            Unoptimized Post (44/100)
+          </button>
+        </div>
+        <button onclick="downloadReport()" class="px-3.5 py-1.5 rounded-xl border border-charcoal-200 bg-white hover:bg-charcoal-50 text-xs font-semibold text-charcoal-800 flex items-center gap-1.5 transition shadow-sm">
+          <svg class="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export Report (.md)
+        </button>
+      </div>
+    </header>
+
+    <!-- Ingestion Console: URL vs Raw Text Mode -->
+    <div class="bg-white p-5 rounded-2xl border border-charcoal-200 shadow-md space-y-4">
+      <!-- Mode Tabs -->
+      <div class="flex items-center justify-between pb-2 border-b border-charcoal-100">
+        <div class="flex gap-4 text-xs font-bold">
+          <button id="mode-url-btn" onclick="setMode('url')" class="text-orange-600 border-b-2 border-orange-500 pb-1.5 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            Live URL Audit
+          </button>
+          <button id="mode-text-btn" onclick="setMode('text')" class="text-charcoal-500 hover:text-charcoal-900 pb-1.5 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Raw Text / Markdown Draft
+          </button>
+        </div>
+        <span class="text-xs text-charcoal-500 font-medium">Real-time AEO & Princeton GEO Parser</span>
+      </div>
+
+      <!-- URL Input Group -->
+      <div id="input-group-url" class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+        <div class="lg:col-span-6 relative">
+          <label class="block text-xs font-bold text-charcoal-700 mb-1.5">Target Webpage URL</label>
+          <div class="flex items-center bg-charcoal-50 rounded-xl border border-charcoal-200 px-3.5 py-2.5 text-sm focus-within:border-orange-500 focus-within:bg-white transition shadow-inner">
+            <svg class="w-4 h-4 text-orange-600 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <input id="input-url" type="text" value="https://example.com/guide/enterprise-cloud-security" class="bg-transparent w-full text-sm outline-none text-charcoal-900 font-mono font-medium" placeholder="https://yourbrand.com/article">
+          </div>
+        </div>
+        <div class="lg:col-span-4">
+          <label class="block text-xs font-bold text-charcoal-700 mb-1.5">Target Query / Prompt (for Answer Match)</label>
+          <div class="flex items-center bg-charcoal-50 rounded-xl border border-charcoal-200 px-3.5 py-2.5 text-sm focus-within:border-orange-500 focus-within:bg-white transition shadow-inner">
+            <svg class="w-4 h-4 text-orange-600 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input id="input-query" type="text" value="What are the best enterprise cloud security practices for 2026?" class="bg-transparent w-full text-sm outline-none text-charcoal-900 font-medium" placeholder="e.g. What is the best CRM software?">
+          </div>
+        </div>
+        <div class="lg:col-span-2 flex items-end">
+          <button id="btn-audit" onclick="triggerAudit()" class="w-full bg-gradient-to-r from-orange-500 via-orange-600 to-amber-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 transition active:scale-[0.98]">
+            <svg id="btn-audit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span id="btn-audit-text">Audit Page</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Raw Text Input Group (Hidden by default) -->
+      <div id="input-group-text" class="hidden space-y-3">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+          <div class="lg:col-span-8">
+            <label class="block text-xs font-bold text-charcoal-700 mb-1.5">Paste Raw Article Text or Markdown</label>
+            <textarea id="input-raw-text" rows="5" class="w-full bg-charcoal-50 rounded-xl border border-charcoal-200 p-3 text-xs text-charcoal-900 outline-none focus:border-orange-500 focus:bg-white font-mono" placeholder="Paste your draft headings, paragraphs, and lists here..."></textarea>
+          </div>
+          <div class="lg:col-span-4 flex flex-col justify-between space-y-2">
+            <div>
+              <label class="block text-xs font-bold text-charcoal-700 mb-1.5">Target Prompt</label>
+              <input id="input-query-text" type="text" value="What are the best enterprise cloud security practices for 2026?" class="w-full bg-charcoal-50 rounded-xl border border-charcoal-200 px-3 py-2 text-xs text-charcoal-900 outline-none focus:border-orange-500 focus:bg-white font-medium" placeholder="What is the core question?">
+            </div>
+            <button onclick="triggerAudit()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow-md shadow-orange-500/20 flex items-center justify-center gap-2">
+              Audit Text Draft
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall Score & High-Level KPI Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <!-- Main Score Card -->
+      <div class="md:col-span-4 lg:col-span-2 bg-white p-6 rounded-2xl border border-charcoal-200 shadow-md flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs uppercase tracking-wider text-charcoal-500 font-bold">Total GEO Index</span>
+            <h3 class="text-lg font-bold text-charcoal-950">AI Search Visibility Score</h3>
+          </div>
+          <span id="score-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-orange-100 text-orange-800 border border-orange-200">AEO High Tier</span>
+        </div>
+        
+        <div class="flex items-center gap-6 my-4">
+          <div class="relative w-24 h-24 flex items-center justify-center flex-shrink-0">
+            <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-charcoal-100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="score-circle" class="text-orange-500 transition-all duration-700 ease-out" stroke-dasharray="88, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span id="score-number" class="text-2xl font-black text-charcoal-950">88</span>
+              <span class="text-[11px] text-charcoal-500 font-bold">/100</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 text-xs text-charcoal-700">
+            <p id="score-summary" class="text-sm font-bold text-charcoal-950">Highly likely to be cited by Perplexity & ChatGPT Search.</p>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+              <span id="stat-summary-1">12 Direct Q&A answer sentences found</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span id="stat-summary-2">Rich FAQ JSON-LD Schema verified</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-charcoal-100 flex justify-between text-xs text-charcoal-600 font-medium">
+          <span>Direct Answer Match: <strong id="stat-answer-match" class="text-orange-600 font-bold">94%</strong></span>
+          <span>Citation Potential: <strong id="stat-citation-pot" class="text-amber-600 font-bold">Very High</strong></span>
+        </div>
+      </div>
+
+      <!-- Metric 1: Direct Answerability -->
+      <div class="bg-white p-5 rounded-2xl border border-charcoal-200 shadow-md flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-bold text-charcoal-500 uppercase tracking-wide">Direct Answer</span>
+          <span id="metric-answer-badge" class="text-xs font-black text-orange-600">92%</span>
+        </div>
+        <div class="my-2">
+          <div class="text-base font-bold text-charcoal-950">First-100 Definition</div>
+          <p id="metric-answer-desc" class="text-xs text-charcoal-600 mt-1">Concise 42-word definition immediately following H1.</p>
+        </div>
+        <div class="w-full bg-charcoal-100 rounded-full h-2 mt-2">
+          <div id="metric-answer-bar" class="bg-orange-500 h-2 rounded-full transition-all duration-500" style="width: 92%"></div>
+        </div>
+      </div>
+
+      <!-- Metric 2: Stats & Quotes Density -->
+      <div class="bg-white p-5 rounded-2xl border border-charcoal-200 shadow-md flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-bold text-charcoal-500 uppercase tracking-wide">Stats & Quotes (GEO)</span>
+          <span id="metric-stats-badge" class="text-xs font-black text-amber-600">84%</span>
+        </div>
+        <div class="my-2">
+          <div class="text-base font-bold text-charcoal-950">Statistical Density</div>
+          <p id="metric-stats-desc" class="text-xs text-charcoal-600 mt-1">8 quantitative metrics, 3 expert quote citations.</p>
+        </div>
+        <div class="w-full bg-charcoal-100 rounded-full h-2 mt-2">
+          <div id="metric-stats-bar" class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: 84%"></div>
+        </div>
+      </div>
+
+      <!-- Metric 3: LLM Chunkability & Schema -->
+      <div class="bg-white p-5 rounded-2xl border border-charcoal-200 shadow-md flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-bold text-charcoal-500 uppercase tracking-wide">AI Readiness</span>
+          <span id="metric-schema-badge" class="text-xs font-black text-orange-600">76%</span>
+        </div>
+        <div class="my-2">
+          <div class="text-base font-bold text-charcoal-950">Schema & llms.txt</div>
+          <p id="metric-schema-desc" class="text-xs text-charcoal-600 mt-1">JSON-LD found. Missing <code class="text-orange-700 bg-orange-50 px-1 py-0.5 rounded border border-orange-200">/llms.txt</code> root file.</p>
+        </div>
+        <div class="w-full bg-charcoal-100 rounded-full h-2 mt-2">
+          <div id="metric-schema-bar" class="bg-orange-600 h-2 rounded-full transition-all duration-500" style="width: 76%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-charcoal-200 gap-2 overflow-x-auto text-xs font-medium">
+      <button onclick="switchTab('tab-checklist')" id="btn-tab-checklist" class="tab-active px-4 py-3 border-b-2 font-bold flex items-center gap-2 transition rounded-t-xl">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="tab-checklist-title">Actionable Fix Checklist (4)</span>
+      </button>
+      <button onclick="switchTab('tab-simulator')" id="btn-tab-simulator" class="px-4 py-3 border-b-2 border-transparent text-charcoal-600 hover:text-charcoal-950 flex items-center gap-2 transition rounded-t-xl">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        AI Answer Engine Simulator
+      </button>
+      <button onclick="switchTab('tab-schema')" id="btn-tab-schema" class="px-4 py-3 border-b-2 border-transparent text-charcoal-600 hover:text-charcoal-950 flex items-center gap-2 transition rounded-t-xl">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        `llms.txt` & Schema Studio
+      </button>
+      <button onclick="switchTab('tab-inspector')" id="btn-tab-inspector" class="px-4 py-3 border-b-2 border-transparent text-charcoal-600 hover:text-charcoal-950 flex items-center gap-2 transition rounded-t-xl">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Content Inspector & Princeton Benchmarks
+      </button>
+    </div>
+
+    <!-- TAB 1: ACTIONABLE FIX CHECKLIST & REWRITES -->
+    <div id="tab-checklist" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-charcoal-950">Priority Optimization Opportunities</h3>
+          <p class="text-xs text-charcoal-600">Specific architectural adjustments to maximize citation rate in Perplexity, ChatGPT Search & Google AI Overviews.</p>
+        </div>
+        <div id="checklist-badges" class="flex gap-2 text-xs">
+          <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-bold">1 High Priority</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-bold">2 Medium</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">5 Passed</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Checklist Container -->
+      <div class="space-y-3.5" id="checklist-container">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 2: AI ANSWER ENGINE SIMULATOR -->
+    <div id="tab-simulator" class="hidden space-y-4">
+      <div class="bg-white p-6 rounded-2xl border border-charcoal-200 shadow-md space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-charcoal-200">
+          <div>
+            <h3 class="text-base font-bold text-charcoal-950">Simulated Generative Answer Response</h3>
+            <p class="text-xs text-charcoal-600">Real-time simulation of how Perplexity, ChatGPT Search, and Google AI Overviews extract and cite this URL.</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-charcoal-600 font-semibold">Engine Profile:</span>
+            <select id="engine-select" onchange="renderSimulatorEngine()" class="bg-charcoal-50 text-charcoal-900 border border-charcoal-200 rounded-lg px-3 py-1.5 outline-none text-xs font-medium">
+              <option value="perplexity">Perplexity Pro (Sonar Large)</option>
+              <option value="chatgpt">ChatGPT Search (GPT-4o Web)</option>
+              <option value="gemini">Google Gemini AI Overview</option>
+              <option value="claude">Claude 3.7 Sonnet Search</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Simulated Response Card -->
+        <div class="bg-charcoal-50 p-6 rounded-xl border border-orange-200 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
+              <span id="sim-engine-name" class="text-xs font-bold text-orange-700 uppercase tracking-wide">Synthesized AI Response (Perplexity Pro)</span>
+            </div>
+            <span id="sim-user-status" class="text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-300 font-bold">Your Site Cited as Source [1]</span>
+          </div>
+
+          <!-- Citation Sources Pills -->
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <span class="text-xs text-charcoal-600 font-bold">Sources Extracted:</span>
+            <div id="sim-sources-container" class="flex flex-wrap gap-2">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Synthesized Answer Body -->
+          <div id="sim-answer-body" class="text-xs leading-relaxed space-y-2.5 text-charcoal-800 border-t border-charcoal-200 pt-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Citation Probability Breakdown -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs pt-2">
+          <div class="bg-white p-3.5 rounded-xl border border-charcoal-200 shadow-sm">
+            <span class="text-charcoal-500 font-medium">Perplexity Citation:</span>
+            <div id="prob-perplexity" class="text-base font-black text-orange-600 mt-1">91% Probability</div>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-charcoal-200 shadow-sm">
+            <span class="text-charcoal-500 font-medium">ChatGPT Search:</span>
+            <div id="prob-chatgpt" class="text-base font-black text-amber-600 mt-1">88% Probability</div>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-charcoal-200 shadow-sm">
+            <span class="text-charcoal-500 font-medium">Google AI Overview:</span>
+            <div id="prob-gemini" class="text-base font-black text-orange-700 mt-1">74% Probability</div>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-charcoal-200 shadow-sm">
+            <span class="text-charcoal-500 font-medium">Claude Direct Source:</span>
+            <div id="prob-claude" class="text-base font-black text-orange-600 mt-1">82% Probability</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: LLMS.TXT & SCHEMA STUDIO -->
+    <div id="tab-schema" class="hidden space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- llms.txt Generator -->
+        <div class="bg-white p-6 rounded-2xl border border-charcoal-200 shadow-md space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-charcoal-950">Generated `/llms.txt`</h3>
+              <p class="text-xs text-charcoal-600">The emerging standard for AI crawlers & LLM agents.</p>
+            </div>
+            <button onclick="copyToClipboard('code-llmstxt')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-600 hover:bg-orange-500 text-white transition flex items-center gap-1 shadow-sm">
+              <span>Copy llms.txt</span>
+            </button>
+          </div>
+          <pre id="code-llmstxt" class="bg-charcoal-950 p-4 rounded-xl border border-charcoal-800 text-xs text-orange-300 font-mono overflow-x-auto leading-relaxed select-all"># Loading llms.txt...</pre>
+        </div>
+
+        <!-- JSON-LD FAQ & Article Schema Generator -->
+        <div class="bg-white p-6 rounded-2xl border border-charcoal-200 shadow-md space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-charcoal-950">Generated `FAQPage` & `Speakable` JSON-LD</h3>
+              <p class="text-xs text-charcoal-600">Structured semantic schema for Google AI Overviews & Answer Engines.</p>
+            </div>
+            <button onclick="copyToClipboard('code-schema')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-600 hover:bg-orange-500 text-white transition flex items-center gap-1 shadow-sm">
+              <span>Copy Schema</span>
+            </button>
+          </div>
+          <pre id="code-schema" class="bg-charcoal-950 p-4 rounded-xl border border-charcoal-800 text-xs text-amber-300 font-mono overflow-x-auto leading-relaxed select-all">&lt;script type="application/ld+json"&gt;
+// Loading Schema...
+&lt;/script&gt;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CONTENT INSPECTOR & PRINCETON BENCHMARKS -->
+    <div id="tab-inspector" class="hidden space-y-4">
+      <div class="bg-white p-6 rounded-2xl border border-charcoal-200 shadow-md space-y-4">
+        <div>
+          <h3 class="text-sm font-bold text-charcoal-950">Princeton GEO Benchmark Factor Breakdown</h3>
+          <p class="text-xs text-charcoal-600">Evaluation against the 9 Generative Engine Optimization research parameters.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs" id="princeton-cards-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-charcoal-900 text-white px-4 py-3 rounded-xl border border-charcoal-700 shadow-2xl text-xs flex items-center gap-2.5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+      <span class="text-orange-400 font-bold">✓</span>
+      <span id="toast-msg">Copied to clipboard!</span>
+    </div>
+
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
