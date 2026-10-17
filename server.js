@@ -7,6 +7,7 @@ const { generateRewrites } = require('./lib/rewriter');
 const { simulateAnswerEngines } = require('./lib/simulator');
 const { generateLlmsTxt, generateJsonLd } = require('./lib/schema-builder');
 const { generateMarkdownReport } = require('./lib/exporter');
+const { determineTargetQuery } = require('./lib/gemini');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,7 +35,21 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
- * Full AEO & GEO Audit API
+ * Endpoint to auto-determine query using Gemini API
+ */
+app.post('/api/generate-query', async (req, res) => {
+  try {
+    const { url = '', text = '' } = req.body;
+    const scraped = await scrapeContent(url, text);
+    const queryInfo = await determineTargetQuery(scraped);
+    res.json({ success: true, ...queryInfo });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * Full AEO & GEO Audit API (with Gemini AI Target Query)
  */
 app.post('/api/analyze', async (req, res) => {
   try {
@@ -50,28 +65,34 @@ app.post('/api/analyze', async (req, res) => {
     // Step 1: Ingest and parse content
     const scraped = await scrapeContent(url, text);
 
-    // Step 2: Run AEO direct answer analysis
-    const aeoResult = analyzeAEO(scraped, query);
+    // Step 2: Determine target query using Google Gemini API
+    const queryResult = await determineTargetQuery(scraped, query);
+    const resolvedQuery = queryResult.query;
 
-    // Step 3: Run GEO multi-factor algorithm
+    // Step 3: Run AEO direct answer analysis
+    const aeoResult = analyzeAEO(scraped, resolvedQuery);
+
+    // Step 4: Run GEO multi-factor algorithm
     const geoResult = analyzeGEO(scraped, aeoResult);
 
-    // Step 4: Generate contextual rewrites
-    const rewrites = generateRewrites(scraped, aeoResult, query);
+    // Step 5: Generate contextual rewrites
+    const rewrites = generateRewrites(scraped, aeoResult, resolvedQuery);
 
-    // Step 5: Simulate Answer Engine citations
-    const simulator = simulateAnswerEngines(scraped, geoResult, query);
+    // Step 6: Simulate Answer Engine citations
+    const simulator = simulateAnswerEngines(scraped, geoResult, resolvedQuery);
 
-    // Step 6: Generate schema & llms.txt
-    const llmsTxt = generateLlmsTxt(scraped, query);
-    const jsonLd = generateJsonLd(scraped, query);
+    // Step 7: Generate schema & llms.txt
+    const llmsTxt = generateLlmsTxt(scraped, resolvedQuery);
+    const jsonLd = generateJsonLd(scraped, resolvedQuery);
 
     const fullResult = {
       success: true,
       url: scraped.url,
       domain: scraped.domain,
       title: scraped.title,
-      targetQuery: query,
+      targetQuery: resolvedQuery,
+      querySource: queryResult.source,
+      geminiStatus: queryResult.geminiStatus,
       totalWordCount: scraped.totalWordCount,
       geoIndex: geoResult.geoIndex,
       tier: geoResult.tier,

@@ -211,6 +211,26 @@ function renderAuditResults(data) {
   document.getElementById('stat-answer-match').innerText = `${pillars.directAnswer}%`;
   document.getElementById('stat-citation-pot').innerText = geoIndex >= 70 ? 'Very High' : (geoIndex >= 50 ? 'Moderate' : 'Low');
 
+  // Populate Target Query field with Gemini output
+  if (data.targetQuery) {
+    const inputQ = document.getElementById('input-query');
+    const inputQT = document.getElementById('input-query-text');
+    if (inputQ) inputQ.value = data.targetQuery;
+    if (inputQT) inputQT.value = data.targetQuery;
+  }
+
+  // Update Gemini Badge status
+  const badge = document.getElementById('gemini-badge');
+  if (badge) {
+    if (data.querySource === 'gemini') {
+      badge.innerHTML = '<span class="text-emerald-500">✨</span> Gemini AI Active';
+      badge.className = 'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+    } else {
+      badge.innerHTML = '<span class="text-orange-600">✨</span> Auto-Determined Query';
+      badge.className = 'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200';
+    }
+  }
+
   // 2. Update Pillar Progress Bars
   document.getElementById('metric-answer-badge').innerText = `${pillars.directAnswer}%`;
   document.getElementById('metric-answer-bar').style.width = `${pillars.directAnswer}%`;
