@@ -77,6 +77,31 @@ async function triggerAudit() {
     brand: ''
   };
 
+function getApiUrl(endpoint) {
+  if (window.location.protocol === 'file:' || !window.location.host.includes(':3000')) {
+    return `http://localhost:3000${endpoint}`;
+  }
+  return endpoint;
+}
+
+async function triggerAudit() {
+  const btn = document.getElementById('btn-audit');
+  const btnText = document.getElementById('btn-audit-text');
+  const btnIcon = document.getElementById('btn-audit-icon');
+
+  const urlInput = document.getElementById('input-url').value.trim();
+  const rawTextInput = document.getElementById('input-raw-text').value.trim();
+  const query = currentMode === 'url' 
+    ? document.getElementById('input-query').value.trim()
+    : document.getElementById('input-query-text').value.trim();
+
+  const payload = {
+    url: currentMode === 'url' ? urlInput : '',
+    text: currentMode === 'text' ? rawTextInput : '',
+    query: query,
+    brand: ''
+  };
+
   if (!payload.url && !payload.text) {
     showToast('Please enter a URL or paste raw text.');
     return;
@@ -88,27 +113,25 @@ async function triggerAudit() {
   btnIcon.classList.add('animate-spin');
 
   try {
-    const res = await fetch('/api/analyze', {
+    const apiUrl = getApiUrl('/api/analyze');
+    const res = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
-    if (!data.success) {
-      // If live scraping failed on an arbitrary remote website, fallback to analyzing simulated content gracefully
-      showToast(`Notice: ${data.error}. Testing with offline heuristic model.`);
-      loadSamplePreset('good');
-      return;
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || `HTTP ${res.status}: Failed to analyze URL`);
     }
 
     currentAuditData = data;
     renderAuditResults(data);
-    showToast('Audit complete!');
+    showToast(`Audit complete for ${data.domain || 'page'}!`);
   } catch (err) {
-    console.error(err);
-    showToast('Network error, showing local evaluation.');
+    console.error('Audit Error:', err);
+    showToast(`Error: ${err.message}. Ensure GeoPulse server is running.`);
   } finally {
     btn.disabled = false;
     btnText.innerText = 'Audit Page';
@@ -135,7 +158,7 @@ function loadSamplePreset(type) {
   document.getElementById('input-query-text').value = preset.query;
 
   // Run audit against the preset text
-  fetch('/api/analyze', {
+  fetch(getApiUrl('/api/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -404,7 +427,7 @@ function downloadReport() {
     return;
   }
 
-  fetch('/api/export', {
+  fetch(getApiUrl('/api/export'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(currentAuditData)
